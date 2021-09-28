@@ -1,25 +1,15 @@
-#include "GLFundamentals.hpp"
-#include "GLDemonstration.hpp"
-#include <obj/obj.h>
-// #include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <easy3d/viewer/viewer.h>
+#include <easy3d/renderer/drawable_points.h>
+#include <easy3d/core/types.h>
+#include <easy3d/fileio/resources.h>
 
 namespace app {
 
-class Window : public gl::demonstration {
+class Window {
  private:
-  obj* object;
-  GLuint program;
-
-  GLint ProjectionMatrixLocation;
-  GLint ModelViewMatrixLocation;
-  GLint NormalMatrixLocation;
-  GLint LightPositionLocation;
-  GLint AmbientLightLocation;
-
  public:
   Window();
-  void draw();
+  int run();
 };
 
 }  // namespace app

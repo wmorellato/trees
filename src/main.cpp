@@ -5,7 +5,5 @@
 
 int main(int argc, char* argv[]) {
   app::Window w;
-  w.run();
-
-  return 0;
+  return w.run();
 }

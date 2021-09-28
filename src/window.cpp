@@ -1,49 +1,44 @@
+#include "markers.hpp"
 #include "window.hpp"
 #include <iostream>
 
 using namespace app;
+using namespace easy3d;
+using namespace environment;
 
-Window::Window() : gl::demonstration("OBJ Demo", 960, 540), object(0), program(0) {
-  if ((program = gl::init_program("../data/vertex.glsl", "../data/fragment.glsl"))) {
-    glUseProgram(program);
+Window::Window() {}
 
-    ProjectionMatrixLocation =
-        glGetUniformLocation(program, "ProjectionMatrix");
-    ModelViewMatrixLocation = glGetUniformLocation(program, "ModelViewMatrix");
-    NormalMatrixLocation = glGetUniformLocation(program, "NormalMatrix");
-    LightPositionLocation = glGetUniformLocation(program, "LightPosition");
-    AmbientLightLocation = glGetUniformLocation(program, "AmbientLight");
+int Window::run() {
+  // const std::vector<vec3> &points = resource::bunny_vertices;
+  MarkerSet m;
+  glm::vec3 c(2.f, 2.f, 2.f);
+  m.AddToSphere(c, 2.0, 1000);
 
-    glUniform4f(AmbientLightLocation, 0.2, 0.2, 0.2, 1.0);
+  Viewer viewer("Test");
 
-    if ((object = obj_create("../data/pokeball.obj"))) {
-      obj_set_vert_loc(object, glGetAttribLocation(program, "vTangent"),
-                       glGetAttribLocation(program, "vNormal"),
-                       glGetAttribLocation(program, "vTexCoord"),
-                       glGetAttribLocation(program, "vPosition"));
+  std::vector<vec3> points;
+  for (std::vector<Marker>::iterator it = std::begin(m.markers); it != std::end(m.markers); ++it) {
+    float x = it->point.x;
+    float y = it->point.y;
+    float z = it->point.z;
 
-      obj_set_prop_loc(object, OBJ_KN, -1,
-                       glGetUniformLocation(program, "NormalTexture"), -1);
-      obj_set_prop_loc(object, OBJ_KD, -1,
-                       glGetUniformLocation(program, "DiffuseTexture"), -1);
-      obj_set_prop_loc(object, OBJ_KS, -1,
-                       glGetUniformLocation(program, "SpecularTexture"), -1);
-    }
+    points.insert(points.begin(), vec3(x, y, z));
   }
 
-  glClearColor(0.2, 0.2, 0.2, 0.0);
-  glEnable(GL_DEPTH_TEST);
-
-  cam_position = gl::vec3(0, 0, 3);
-}
-
-void Window::draw() {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  auto vertices = new PointsDrawable("faces");
+  // Upload the vertex positions of the surface to the GPU.
+  vertices->update_vertex_buffer(points);
   
-  glUniformMatrix4fv(ProjectionMatrixLocation, 1, GL_TRUE, projection());
-  glUniformMatrix4fv(ModelViewMatrixLocation,  1, GL_TRUE, view());
-  glUniformMatrix3fv(NormalMatrixLocation,     1, GL_TRUE, normal(view()));
-  glUniform4fv      (LightPositionLocation,    1,          light());
+  // Draw the vertices in red.
+  vertices->set_uniform_coloring(vec4(1.0f, 0.0f, 0.0f, 1.0f));  // r, g, b, a
+  // Draw the vertices as spheres.
+  vertices->set_impostor_type(PointsDrawable::SPHERE);
+  // Set the vertices size to 10 pixels.
+  vertices->set_point_size(5);
+  // Add the drawable to the viewer
+  viewer.add_drawable(vertices);
 
-  if (object) obj_render(object);
+  viewer.fit_screen();
+
+  return viewer.run();
 }
