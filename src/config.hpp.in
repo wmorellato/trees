@@ -1,0 +1,2 @@
+#define trees_VERSION_MAJOR @trees_VERSION_MAJOR@
+#define trees_VERSION_MINOR @trees_VERSION_MINOR@
