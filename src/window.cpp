@@ -13,17 +13,22 @@ int Window::run() {
   MarkerSet m;
   glm::vec3 c(2.f, 2.f, 2.f);
   m.AddToSphere(c, 2.0, 1000);
+  m.AddToSphere(glm::vec3(0.0, 0.0, 0.0), 2.0, 1000);
+  m.RemoveFromSphere(glm::vec3(0.0, 0.0, 0.0), 2.0);
 
   Viewer viewer("Test");
 
   std::vector<vec3> points;
   for (std::vector<Marker>::iterator it = std::begin(m.markers); it != std::end(m.markers); ++it) {
+    std::cout << *it << std::endl;
     float x = it->point.x;
     float y = it->point.y;
     float z = it->point.z;
 
     points.insert(points.begin(), vec3(x, y, z));
   }
+
+  std::cout << "size in points " << points.size() << std::endl;
 
   auto vertices = new PointsDrawable("faces");
   // Upload the vertex positions of the surface to the GPU.
