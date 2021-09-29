@@ -14,8 +14,8 @@ void Marker::Reset() {
 MarkerSet::MarkerSet() {}
 
 void MarkerSet::Reset() {
-  for (std::vector<Marker>::iterator it = std::begin(markers);
-       it != std::end(markers); ++it) {
+  for (std::list<Marker>::iterator it = markers.begin();
+       it != markers.end(); ++it) {
     it->Reset();
   }
 }
@@ -23,15 +23,12 @@ void MarkerSet::Reset() {
 void MarkerSet::AddToSphere(glm::vec3 center, float radius, int count) {
   for (int i = 0; i < count; i++) {
     glm::vec3 point = glm::ballRand(radius) + center;
-    Marker m(point);
-    markers.emplace_back(m);
+    markers.push_back(Marker(point));
   }
 }
 
 void MarkerSet::RemoveFromSphere(glm::vec3 center, float radius) {
-  std::vector<Marker>::iterator pend = std::remove_if(markers.begin(), markers.end(), [center, radius](const Marker& m) {
+  markers.remove_if([center, radius](const Marker& m) {
     return glm::distance(m.point, center) < radius;
   });
-
-  markers.erase(pend, markers.end());
 }

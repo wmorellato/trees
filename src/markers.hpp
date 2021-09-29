@@ -1,6 +1,9 @@
+#ifndef TREES_SRC_MARKERS_H
+#define TREES_SRC_MARKERS_H
+
 #include <glm/glm.hpp>
 #include <limits>
-#include <vector>
+#include <list>
 #include <iostream>
 
 namespace environment {
@@ -24,7 +27,7 @@ class Marker {
 class MarkerSet {
  private:
  public:
-  std::vector<Marker> markers;
+  std::list<Marker> markers;
 
   MarkerSet();
 
@@ -34,3 +37,5 @@ class MarkerSet {
 };
 
 }  // namespace environment
+
+#endif

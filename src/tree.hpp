@@ -1,6 +1,7 @@
-#include <glm/vec3.hpp>
+#ifndef TREES_SRC_TREE_H
+#define TREES_SRC_TREE_H
 
-#pragma once
+#include <glm/vec3.hpp>
 
 namespace tree {
 
@@ -13,3 +14,5 @@ class Tree {
 };
 
 }  // namespace tree
+
+#endif
