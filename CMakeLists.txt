@@ -23,7 +23,10 @@ include_directories(${EASY3D_INCLUDE_DIRS})
 add_executable(trees
                src/main.cpp
                src/window.hpp src/window.cpp
-               src/markers.hpp src/markers.cpp
+               src/tree.hpp src/tree.cpp
+               src/node.hpp src/node.cpp
+               src/bud.hpp src/bud.cpp
+               src/marker.hpp src/marker.cpp
 )
 
 # replace config file
