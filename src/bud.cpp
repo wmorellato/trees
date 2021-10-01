@@ -4,29 +4,20 @@
 
 using namespace tree;
 
-float Bud::getQ() {
-  // using space for now
-  if (markers.size() > 0) {
-    return 1.0;
-  }
+Bud::Bud(Node* _parent, environment::MarkerSet& m, bool _terminal)
+    : parent{_parent}, marker_set{m}, terminal{_terminal} {}
 
-  return 0.0;
-}
+glm::vec3 Bud::position() { return parent->position; }
 
-glm::vec3 Bud::getPosition() { return parent->position; }
+glm::vec3 Bud::orientation() { return parent->direction; }
 
-glm::vec3 Bud::getOrientation() { return parent->direction; }
-
-glm::vec3 Bud::getOptimalGrowthDirection() {
+void Bud::setBudFate() {
   glm::vec3 ogd = glm::vec3(0.0);
 
-  for (std::list<environment::Marker*>::iterator it = markers.begin(); it != markers.end();
-       ++it) {
-    // the pointer may be null
-    if ((*it) != nullptr) {
-      ogd += (*it)->position;
+  for (environment::Marker* m : marker_set.dirty_markers) {
+    if (m->bud_id == id) {
+      Q = 1.0;
+      optm_growth_direction += glm::normalize(m->position - parent->position);
     }
   }
-
-  return glm::normalize(ogd);
 }

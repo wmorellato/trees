@@ -7,12 +7,12 @@ project(trees VERSION 1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(OpenGL_GL_PREFERENCE GLVND)
+set(CMAKE_BUILD_TYPE Debug)
 
 # include dirs
 include_directories(include)
-
-# glfw
 find_package(glfw3 3.3 REQUIRED)
+find_package(Threads REQUIRED)
 
 # easy3d
 set(Easy3D_DIR /home/wes/repos/Easy3D/build)
@@ -35,4 +35,7 @@ configure_file(src/config.hpp.in config.hpp)
 target_include_directories(trees PUBLIC "${PROJECT_BINARY_DIR}")
 
 target_link_libraries(trees glfw)
+target_link_libraries(trees dl)
 target_link_libraries(trees ${EASY3D_LIBRARIES})
+target_link_libraries(trees ${CMAKE_SOURCE_DIR}/libs/libspdlog.a)
+target_link_libraries(trees ${CMAKE_THREAD_LIBS_INIT})

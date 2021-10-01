@@ -1,13 +1,11 @@
 #include "marker.hpp"
-#include <algorithm>
 #include <glm/gtc/random.hpp>
 #include <glm/gtx/vector_angle.hpp>
+#include <algorithm>
 
 using namespace environment;
 
-Marker::Marker(glm::vec3 position) : position(position) {
-  
-}
+Marker::Marker(glm::vec3 position) : position(position) {}
 
 void Marker::reset() {
   bud_id = 0;
@@ -17,6 +15,8 @@ void Marker::reset() {
 MarkerSet::MarkerSet() {}
 
 void MarkerSet::reset() {
+  dirty_markers.clear();
+
   for (std::list<Marker>::iterator it = markers.begin(); it != markers.end();
        ++it) {
     it->reset();
@@ -36,19 +36,33 @@ void MarkerSet::removeFromSphere(glm::vec3 center, float radius) {
   });
 }
 
-void MarkerSet::assignBud(long bud_id, glm::vec3 bud_position, float r, float theta) {
+void MarkerSet::assignBud(long bud_id, glm::vec3 bud_position, float r,
+                          float theta) {
   // temporary
   for (std::list<Marker>::iterator it = markers.begin(); it != markers.end();
        ++it) {
-    Marker *m = &(*it);
+    Marker* m = &(*it);
     float distance = glm::distance(m->position, bud_position);
     float angle = glm::angle(m->position, bud_position);
 
     if (distance < r && distance < m->min_distance) {
       if (angle < theta / 2.0) {
-        // bud.markers.push_back(m);
         m->bud_id = bud_id;
+        m->min_distance = distance;
+        dirty_markers.push_back(m);
       }
     }
   }
+}
+
+glm::vec3 MarkerSet::getGrowthDirection(long bud_id, glm::vec3 position) {
+  glm::vec3 growth_direction(0.0, 0.0, 0.0);
+
+  for (auto m : markers) {
+    if (m.bud_id == bud_id) {
+      growth_direction += glm::normalize(m.position - position);
+    }
+  }
+
+  return glm::normalize(growth_direction);
 }

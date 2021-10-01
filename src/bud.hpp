@@ -1,14 +1,15 @@
 #ifndef TREES_SRC_BUD_H
 #define TREES_SRC_BUD_H
 
-#include <list>
 #include <glm/glm.hpp>
+#include <list>
 
 namespace environment {
 
 class Marker;
+class MarkerSet;
 
-}
+}  // namespace environment
 
 namespace tree {
 
@@ -17,18 +18,20 @@ class Node;
 class Bud {
  private:
  public:
-  Bud(Node* _parent, bool _terminal) : parent{_parent}, terminal{_terminal} {}
+  Bud(Node* _parent, environment::MarkerSet& m, bool _terminal);
 
+  int new_internodes{0};
+  bool terminal{false};
+  long id{rand()};
+  float Q{0};  // represents available space or light
+  float internode_length{0.0};
+  glm::vec3 optm_growth_direction{glm::vec3(0.0)};
   Node* parent;  // to get the position
-  long id = rand();
-  float Q;  // represents available space or light
-  bool terminal = false;
-  std::list<environment::Marker*> markers;
+  environment::MarkerSet& marker_set;
 
-  float getQ();
-  glm::vec3 getPosition();
-  glm::vec3 getOrientation();
-  glm::vec3 getOptimalGrowthDirection();
+  glm::vec3 position();
+  glm::vec3 orientation();
+  void setBudFate();
 };
 
 }  // namespace tree

@@ -13,6 +13,7 @@ class Node {
 
   int order;
   float branch_diameter = 0.01;
+  float Qbuds = 0.0;
   float Qm = 0.0;  // resource from main branch
   float Ql = 0.0;  // resource from lateral branch
   float v = 0.0;   // resource allocated
@@ -22,8 +23,9 @@ class Node {
   std::list<Bud> buds;
   std::list<std::unique_ptr<Node>> children;
 
-  void addBud(Bud b);
-  void addChild(std::unique_ptr<Node> &n);
+  void addBud(const Bud& b);
+  void addChild(Node* n);
+  float getQBuds();
 };
 
 }  // namespace tree
