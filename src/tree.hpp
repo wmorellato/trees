@@ -1,6 +1,14 @@
 #ifndef TREES_SRC_TREE_H
 #define TREES_SRC_TREE_H
 
+// to be removed
+#include <easy3d/renderer/drawable_lines.h>
+#include <easy3d/renderer/drawable_points.h>
+#include <easy3d/renderer/camera.h>
+#include <easy3d/core/types.h>
+#include <easy3d/fileio/resources.h>
+#include <easy3d/viewer/viewer.h>
+
 #include "marker.hpp"
 #include "node.hpp"
 #include <glm/vec3.hpp>
@@ -32,7 +40,8 @@ class Tree {
   const float r = 4.0;
   const float theta = 90.0;
   const float ro = 2.0;
-  const float lambda{2.0};
+  const float alpha = 2.0; // coefficient of proportionality
+  const float lambda = 0.5; // 
   const glm::vec3 tropism{glm::vec3(0.0, 1.0, 0.0)};
 
   std::unique_ptr<Node> root;

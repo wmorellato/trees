@@ -16,10 +16,14 @@ glm::vec3 getPointInSphereCap(glm::vec3 direction, float angle) {
   return glm::quatLookAt(direction, glm::vec3(0.0, 1.0, 0.0)) * V;
 }
 
-Tree::Tree(MarkerSet& marker_set) : marker_set{marker_set} { createSeedling(); }
+Tree::Tree(MarkerSet& marker_set)
+    : marker_set{marker_set} {
+  createSeedling();
+}
 
 void Tree::createSeedling() {
   root = std::make_unique<Node>(nullptr, glm::vec3(0.0), 0);
+  root->level = 1;
   root->addBud(Bud(root.get(), marker_set, true));
 }
 
@@ -36,14 +40,19 @@ void Tree::runGrowthIteration(Node& node) {
   }
 
   computeMarkers(node);
-  float Qbase = passQBasipetallyBH(node) * lambda;
+  float Qbase = passQBasipetallyBH(node) * alpha;
+
+  if (Qbase > 128) {
+    return;
+  }
+
   passVAcropetallyBH(node, Qbase);
   growShoots(node);
 }
 
 void Tree::computeMarkers(Node& node) {
-  spdlog::info("node {} has {} buds and {} children", node.order,
-               node.buds.size(), node.children.size());
+  // spdlog::info("node {} has {} buds and {} children", node.level,
+  //              node.buds.size(), node.children.size());
 
   for (auto& b : node.buds) {
     marker_set.addToSphere(b.position() + glm::normalize(b.orientation()), 2.0,
@@ -55,7 +64,8 @@ void Tree::computeMarkers(Node& node) {
 
   std::list<std::unique_ptr<Node>>::iterator it;
   for (it = node.children.begin(); it != node.children.end(); ++it) {
-    computeMarkers(*(it->get()));
+    Node& foo = *(it->get());
+    computeMarkers(foo);
   }
 }
 
@@ -79,24 +89,37 @@ float Tree::passQBasipetallyBH(Node& node) {
     }
   }
 
+  for (auto b : node.buds) {
+    if (b.terminal) {
+      Qm += b.Q;
+    } else {
+      Ql += b.Q;
+    }
+  }
+
   node.Qm = Qm;
   node.Ql = Ql;
 
-  return node.Ql + node.Qm + node.getQBuds();
+  return node.Ql + node.Qm;
 }
 
 void Tree::passVAcropetallyBH(Node& node, float v) {
   node.v = v;
 
   float vm =
-      v * (lambda * node.Qm / (lambda * node.Qm + (1 - lambda) * node.Ql));
-  float vl = v * ((1 - lambda) * node.Ql /
-                  (lambda * node.Qm + (1 - lambda) * node.Ql));
+      v * (lambda * node.Qm) / (lambda * node.Qm + (1 - lambda) * node.Ql);
+  float vl = v * ((1 - lambda) * node.Ql) /
+             (lambda * node.Qm + (1 - lambda) * node.Ql);
 
   for (auto& b : node.buds) {
     b.new_internodes = floorf(v);
     b.internode_length = v / b.new_internodes;
   }
+
+  // if (node.children.size() < 2) {
+  //   // it's not a branching point
+  //   vm = v;
+  // }
 
   std::list<std::unique_ptr<Node>>::iterator it;
   for (it = node.children.begin(); it != node.children.end(); ++it) {
@@ -115,18 +138,28 @@ void Tree::passVAcropetallyBH(Node& node, float v) {
 }
 
 void Tree::growShoots(Node& node) {
+  spdlog::info("node {}, buds {}, children {}, parent {}", node.id,
+               node.buds.size(), node.children.size(), (void*)node.parent);
+
+  for (auto& c : node.children) {
+    growShoots(*c.get());
+  }
+
   for (auto& b : node.buds) {
     if (b.new_internodes > 0) {
       glm::vec3 direction;
       int order;
+      int level;
 
       if (b.terminal) {
         direction =
             glm::normalize(node.direction + b.optm_growth_direction + tropism);
         order = node.order;
+        level = node.level + 1;
       } else {
         direction = glm::normalize(getPointInSphereCap(node.direction, 90.0));
-        order = node.order++;
+        order = node.order + 1;
+        level = node.level * 2;
       }
 
       Node* n = std::addressof(node);
@@ -134,6 +167,9 @@ void Tree::growShoots(Node& node) {
         Node* new_node =
             new Node(n, n->position + direction * b.internode_length, order);
         new_node->addBud(Bud(n, marker_set, false));
+
+        new_node->level = level;
+        level++;
 
         n->addChild(new_node);
         n = new_node;

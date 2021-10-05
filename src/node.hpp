@@ -12,6 +12,8 @@ class Node {
   Node(Node* _parent, glm::vec3 _position, int _order);
 
   int order;
+  int level;
+  long id{rand()};
   float branch_diameter = 0.01;
   float Qbuds = 0.0;
   float Qm = 0.0;  // resource from main branch
