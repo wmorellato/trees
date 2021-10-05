@@ -3,6 +3,7 @@
 #include <glm/ext/quaternion_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/random.hpp>
+#include <glm/gtx/vector_angle.hpp>
 #include <cmath>
 #include <iostream>
 
@@ -10,10 +11,10 @@ using namespace tree;
 using namespace environment;
 
 glm::vec3 getPointInSphereCap(glm::vec3 direction, float angle) {
-  float rads = (std::rand() % (int)angle) * M_PI / 180.0;
-  glm::vec2 point_circle = (glm::circularRand<double>(1.0)) * sin(rads);
+  double rads = (std::rand() % (int)angle) * M_PI / 180.0;
+  glm::vec2 point_circle = glm::normalize(glm::circularRand<double>(1.0)) * sin(rads);
   glm::vec3 V = glm::vec3(point_circle.x, point_circle.y, cos(rads));
-  return glm::quatLookAt(direction, glm::vec3(0.0, 1.0, 0.0)) * V;
+  return glm::quatLookAtLH(glm::normalize(direction), glm::vec3(0.0, 1.0, 0.0)) * V;
 }
 
 Tree::Tree(MarkerSet& marker_set)

@@ -43,10 +43,10 @@ void MarkerSet::assignBud(long bud_id, glm::vec3 bud_position, float r,
        ++it) {
     Marker* m = &(*it);
     float distance = glm::distance(m->position, bud_position);
-    float angle = glm::angle(m->position, bud_position);
+    float angle = glm::angle(glm::normalize(m->position), glm::normalize(bud_position));
 
     if (distance < r && distance < m->min_distance) {
-      if (angle < theta / 2.0) {
+      if (glm::degrees(angle) < theta / 2.0) {
         m->bud_id = bud_id;
         m->min_distance = distance;
         dirty_markers.push_back(m);

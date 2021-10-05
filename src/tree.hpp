@@ -15,6 +15,8 @@
 #include <list>
 #include <memory>
 
+glm::vec3 getPointInSphereCap(glm::vec3 direction, float angle);
+
 namespace tree {
 
 class Tree {
