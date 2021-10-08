@@ -27,7 +27,7 @@ Tree::Tree(MarkerSet& marker_set) : marker_set{marker_set} { createSeedling(); }
 void Tree::createSeedling() {
   root = std::make_unique<Node>(nullptr, glm::vec3(0.0), 0);
   root->level = 1;
-  root->addBud(Bud(root.get(), marker_set, true));
+  root->terminal_bud = new Bud(root.get(), marker_set, true);
 }
 
 void Tree::run(int iterations) {
@@ -57,12 +57,20 @@ void Tree::computeMarkers(Node& node) {
   // spdlog::info("node {} has {} buds and {} children", node.level,
   //              node.buds.size(), node.children.size());
 
-  for (auto& b : node.buds) {
-    marker_set.addToSphere(b.position(), 4.0, environment::num_markers);
-    marker_set.removeFromSphere(b.position(), environment::ro);
-    marker_set.assignBud(b.id, b.position(), environment::r,
-                         environment::theta);
-    b.setBudFate();
+  if (node.terminal_bud) {
+    marker_set.addToSphere(node.terminal_bud->position(), 4.0, environment::num_markers);
+    marker_set.removeFromSphere(node.terminal_bud->position(), environment::ro);
+    marker_set.assignBud(node.terminal_bud->id, node.terminal_bud->position(), environment::r,
+                          environment::theta);
+    node.terminal_bud->setBudFate();
+  }
+
+  if (node.axillary_bud) {
+    marker_set.addToSphere(node.axillary_bud->position(), 4.0, environment::num_markers);
+    marker_set.removeFromSphere(node.axillary_bud->position(), environment::ro);
+    marker_set.assignBud(node.axillary_bud->id, node.axillary_bud->position(), environment::r,
+                          environment::theta);
+    node.axillary_bud->setBudFate();
   }
 
   std::list<std::unique_ptr<Node>>::iterator it;
@@ -92,13 +100,8 @@ float Tree::passQBasipetallyBH(Node& node) {
     }
   }
 
-  for (auto b : node.buds) {
-    if (b.terminal) {
-      Qm += b.Q;
-    } else {
-      Ql += b.Q;
-    }
-  }
+  if (node.terminal_bud) Qm = node.terminal_bud->Q;
+  if (node.axillary_bud) Ql = node.axillary_bud->Q;
 
   node.Qm = Qm;
   node.Ql = Ql;
@@ -113,16 +116,15 @@ void Tree::passVAcropetallyBH(Node& node, float v) {
   float vm = v * (l * node.Qm) / (l * node.Qm + (1 - l) * node.Ql);
   float vl = v * ((1 - l) * node.Ql) / (l * node.Qm + (1 - l) * node.Ql);
 
-  for (auto& b : node.buds) {
-    b.new_internodes = floorf(v);
-    if (b.internode_length > 2) b.internode_length = 2;
-    b.internode_length = v / b.new_internodes;
+  if (node.terminal_bud) {
+    node.terminal_bud->new_internodes = floorf(v);
+    node.terminal_bud->internode_length = v / node.terminal_bud->new_internodes;
   }
 
-  // if (node.children.size() < 2) {
-  //   // it's not a branching point
-  //   vm = v;
-  // }
+  if (node.axillary_bud) {
+    node.axillary_bud->new_internodes = floorf(v);
+    node.axillary_bud->internode_length = v / node.axillary_bud->new_internodes;
+  }
 
   std::list<std::unique_ptr<Node>>::iterator it;
   for (it = node.children.begin(); it != node.children.end(); ++it) {
@@ -141,42 +143,56 @@ void Tree::passVAcropetallyBH(Node& node, float v) {
 }
 
 void Tree::growShoots(Node& node) {
-  spdlog::info("node {}, buds {}, children {}, parent {}", node.id,
-               node.buds.size(), node.children.size(), (void*)node.parent);
+  spdlog::info("node {}, children {}, parent {}", node.id,
+              node.children.size(), (void*)node.parent);
+  
+  if (node.axillary_bud) {
+    Node* n = std::addressof(node);
+    for (int i = 0; i < node.axillary_bud->new_internodes; i++) {
+      glm::vec3 randv(getPointInSphereCap(node.direction, 60.0));
+      glm::vec3 direction = randv;
 
-  for (auto& c : node.children) {
-    growShoots(*c.get());
-  }
+      Node* new_node = new Node(n, n->position + direction*node.axillary_bud->internode_length, node.order + 1);
+      new_node->axillary_bud = new Bud(n, marker_set, false);
 
-  for (auto& b : node.buds) {
-    if (b.new_internodes > 0) {
-      glm::vec3 direction;
-      int order;
+      n->addChild(new_node);
+      n = new_node;
+    }
 
-      Node* n = std::addressof(node);
-      for (int i = 0; i < b.new_internodes; i++) {
-
-        if (b.terminal) {
-          glm::vec3 randv(getPointInSphereCap(node.direction, 60.0));
-          direction = glm::normalize(node.direction) + glm::normalize(b.optm_growth_direction) + randv + environment::tropism();
-          order = node.order;
-        } else {
-          glm::vec3 randv(getPointInSphereCap(node.direction, 90.0));
-          direction = randv;
-          order = node.order + 1;
-        }
-
-        Node* new_node = new Node(n, n->position + direction*b.internode_length, order);
-        new_node->addBud(Bud(n, marker_set, false));
-
-        n->addChild(new_node);
-        n = new_node;
+    n->terminal_bud = new Bud(n, marker_set, true);
+  } else {
+    for (auto &c : node.children) {
+      if (c->order != node.order) {
+        growShoots(*c);
       }
-
-      n->addBud(Bud(n, marker_set, true));
-      n->addBud(Bud(n, marker_set, false));
     }
   }
 
-  node.buds.clear();
+  if (node.terminal_bud) {
+    Node* n = std::addressof(node);
+    for (int i = 0; i < node.terminal_bud->new_internodes; i++) {
+      glm::vec3 randv(getPointInSphereCap(node.direction, 60.0));
+      glm::vec3 direction = direction = glm::normalize(node.direction) + glm::normalize(node.terminal_bud->optm_growth_direction) + randv + environment::tropism();
+
+      Node* new_node = new Node(n, n->position + direction*node.terminal_bud->internode_length, node.order + 1);
+      new_node->terminal_bud = new Bud(n, marker_set, false);
+
+      n->addChild(new_node);
+      n = new_node;
+    }
+
+    n->terminal_bud = new Bud(n, marker_set, true);
+  } else {
+    for (auto &c : node.children) {
+      if (c->order == node.order) {
+        growShoots(*c);
+      }
+    }
+  }
+  
+  delete node.axillary_bud;
+  delete node.terminal_bud;
+
+  node.axillary_bud = nullptr;
+  node.terminal_bud = nullptr;
 }

@@ -11,24 +11,6 @@ using namespace environment;
 std::vector<unsigned int> indices;
 std::vector<vec3> nodes;
 
-std::vector<vec3> getBudVector(std::unique_ptr<Node>& node) {
-  std::vector<vec3> buds;
-
-  for (auto b : node->buds) {
-    glm::vec3 gv = b.position();
-    buds.push_back(vec3(gv.x, gv.y, gv.z));
-  }
-
-  for (std::list<std::unique_ptr<Node>>::iterator it = node->children.begin();
-       it != node->children.end(); ++it) {
-    // I'm screwed if there are circular dependencies between nodes...
-    std::vector<vec3> rv = getBudVector(*it);
-    buds.insert(buds.begin(), rv.begin(), rv.end());
-  }
-
-  return buds;
-}
-
 void getNodeVector(std::unique_ptr<Node>& node, int pindex) {
   Node* n = node.get();
   glm::vec3 pos = n->position;

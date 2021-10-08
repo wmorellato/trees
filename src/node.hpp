@@ -22,10 +22,10 @@ class Node {
   Node* parent;
   glm::vec3 position;
   glm::vec3 direction;
-  std::list<Bud> buds;
+  Bud* axillary_bud = NULL;
+  Bud* terminal_bud = NULL;
   std::list<std::unique_ptr<Node>> children;
 
-  void addBud(const Bud& b);
   void addChild(Node* n);
   float getQBuds();
 };

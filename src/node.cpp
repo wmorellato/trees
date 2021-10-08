@@ -11,8 +11,6 @@ Node::Node(Node* parent, glm::vec3 position, int order)
   }
 }
 
-void Node::addBud(const Bud& b) { this->buds.push_back(b); }
-
 void Node::addChild(Node* n) {
   this->children.push_back(std::unique_ptr<Node>{n});
 }
@@ -20,13 +18,8 @@ void Node::addChild(Node* n) {
 float Node::getQBuds() {
   float Q = 0.0;
 
-  if (buds.size() == 0) {
-    return Q;
-  }
-
-  for (auto b : buds) {
-    Q += b.Q;
-  }
+  if (axillary_bud) Q += axillary_bud->Q;
+  if (terminal_bud) Q += terminal_bud->Q;
 
   return Q;
 }
