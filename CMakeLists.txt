@@ -22,6 +22,7 @@ include_directories(${EASY3D_INCLUDE_DIRS})
 # add main file
 add_executable(trees
                src/main.cpp
+               src/environment.hpp
                src/window.hpp src/window.cpp
                src/tree.hpp src/tree.cpp
                src/node.hpp src/node.cpp
@@ -38,4 +39,5 @@ target_link_libraries(trees glfw)
 target_link_libraries(trees dl)
 target_link_libraries(trees ${EASY3D_LIBRARIES})
 target_link_libraries(trees ${CMAKE_SOURCE_DIR}/libs/libspdlog.a)
+target_link_libraries(trees ${CMAKE_SOURCE_DIR}/libs/libyaml-cpp.a)
 target_link_libraries(trees ${CMAKE_THREAD_LIBS_INIT})

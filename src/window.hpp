@@ -1,3 +1,5 @@
+#include "environment.hpp"
+
 namespace app {
 
 class Window {

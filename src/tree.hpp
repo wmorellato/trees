@@ -1,6 +1,8 @@
 #ifndef TREES_SRC_TREE_H
 #define TREES_SRC_TREE_H
 
+#include "environment.hpp"
+
 // to be removed
 #include <easy3d/renderer/drawable_lines.h>
 #include <easy3d/renderer/drawable_points.h>
@@ -38,13 +40,6 @@ class Tree {
   void createNewMarkers(Node& node);
   void assignMarkers(Node& node);
   void removeMarkersFromZone(Node& node);
-
-  const float r = 4.0;
-  const float theta = 90.0;
-  const float ro = 2.0;
-  const float alpha = 2.0; // coefficient of proportionality
-  const float lambda = 0.5; // 
-  const glm::vec3 tropism{glm::vec3(0.0, 1.0, 0.0)};
 
   std::unique_ptr<Node> root;
   environment::MarkerSet& marker_set;

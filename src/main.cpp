@@ -3,8 +3,10 @@
 #include "window.hpp"
 #include <iostream>
 #include <string>
+#include <random>
 
 int main(int argc, char* argv[]) {
+  srand(time(0));
   spdlog::set_pattern("[%c] %-8l %v");
 
   if (argc < 2) {

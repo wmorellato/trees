@@ -3,12 +3,17 @@
 #include <glm/ext/quaternion_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/random.hpp>
-#include <glm/gtx/vector_angle.hpp>
 #include <cmath>
 #include <iostream>
 
 using namespace tree;
 using namespace environment;
+
+std::string pv3(glm::vec3 v) {
+  std::ostringstream os;
+  os << v.x << "," << v.y << "," << v.z;
+  return os.str();
+}
 
 glm::vec3 getPointInSphereCap(glm::vec3 direction, float angle) {
   double rads = (std::rand() % (int)angle) * M_PI / 180.0;
@@ -17,10 +22,7 @@ glm::vec3 getPointInSphereCap(glm::vec3 direction, float angle) {
   return glm::quatLookAtLH(glm::normalize(direction), glm::vec3(0.0, 1.0, 0.0)) * V;
 }
 
-Tree::Tree(MarkerSet& marker_set)
-    : marker_set{marker_set} {
-  createSeedling();
-}
+Tree::Tree(MarkerSet& marker_set) : marker_set{marker_set} { createSeedling(); }
 
 void Tree::createSeedling() {
   root = std::make_unique<Node>(nullptr, glm::vec3(0.0), 0);
@@ -41,9 +43,9 @@ void Tree::runGrowthIteration(Node& node) {
   }
 
   computeMarkers(node);
-  float Qbase = passQBasipetallyBH(node) * alpha;
+  float Qbase = passQBasipetallyBH(node) * environment::alpha;
 
-  if (Qbase > 128) {
+  if (Qbase > environment::qbase_max) {
     return;
   }
 
@@ -56,10 +58,10 @@ void Tree::computeMarkers(Node& node) {
   //              node.buds.size(), node.children.size());
 
   for (auto& b : node.buds) {
-    marker_set.addToSphere(b.position() + glm::normalize(b.orientation()), 2.0,
-                           10);
-    marker_set.removeFromSphere(b.position(), ro);
-    marker_set.assignBud(b.id, b.position(), r, theta);
+    marker_set.addToSphere(b.position(), 4.0, environment::num_markers);
+    marker_set.removeFromSphere(b.position(), environment::ro);
+    marker_set.assignBud(b.id, b.position(), environment::r,
+                         environment::theta);
     b.setBudFate();
   }
 
@@ -106,14 +108,14 @@ float Tree::passQBasipetallyBH(Node& node) {
 
 void Tree::passVAcropetallyBH(Node& node, float v) {
   node.v = v;
+  float l = environment::lambda;
 
-  float vm =
-      v * (lambda * node.Qm) / (lambda * node.Qm + (1 - lambda) * node.Ql);
-  float vl = v * ((1 - lambda) * node.Ql) /
-             (lambda * node.Qm + (1 - lambda) * node.Ql);
+  float vm = v * (l * node.Qm) / (l * node.Qm + (1 - l) * node.Ql);
+  float vl = v * ((1 - l) * node.Ql) / (l * node.Qm + (1 - l) * node.Ql);
 
   for (auto& b : node.buds) {
     b.new_internodes = floorf(v);
+    if (b.internode_length > 2) b.internode_length = 2;
     b.internode_length = v / b.new_internodes;
   }
 
@@ -150,65 +152,31 @@ void Tree::growShoots(Node& node) {
     if (b.new_internodes > 0) {
       glm::vec3 direction;
       int order;
-      int level;
-
-      if (b.terminal) {
-        direction =
-            glm::normalize(node.direction + b.optm_growth_direction + tropism);
-        order = node.order;
-        level = node.level + 1;
-      } else {
-        direction = glm::normalize(getPointInSphereCap(node.direction, 90.0));
-        order = node.order + 1;
-        level = node.level * 2;
-      }
 
       Node* n = std::addressof(node);
       for (int i = 0; i < b.new_internodes; i++) {
-        Node* new_node =
-            new Node(n, n->position + direction * b.internode_length, order);
-        new_node->addBud(Bud(n, marker_set, false));
 
-        new_node->level = level;
-        level++;
+        if (b.terminal) {
+          glm::vec3 randv(getPointInSphereCap(node.direction, 60.0));
+          direction = glm::normalize(node.direction) + glm::normalize(b.optm_growth_direction) + randv + environment::tropism();
+          order = node.order;
+        } else {
+          glm::vec3 randv(getPointInSphereCap(node.direction, 90.0));
+          direction = randv;
+          order = node.order + 1;
+        }
+
+        Node* new_node = new Node(n, n->position + direction*b.internode_length, order);
+        new_node->addBud(Bud(n, marker_set, false));
 
         n->addChild(new_node);
         n = new_node;
       }
 
       n->addBud(Bud(n, marker_set, true));
+      n->addBud(Bud(n, marker_set, false));
     }
   }
 
   node.buds.clear();
-}
-
-// ---
-
-void Tree::createNewMarkers(Node& node) {
-  for (auto b : node.buds) {
-    marker_set.addToSphere(b.position() + glm::normalize(b.orientation()), 2.0,
-                           10);
-  }
-}
-
-void Tree::assignMarkers(Node& node) {
-  for (std::list<Bud>::iterator it = node.buds.begin(); it != node.buds.end();
-       ++it) {
-    marker_set.assignBud(it->id, it->position(), r, theta);
-  }
-
-  for (std::list<std::unique_ptr<Node>>::iterator it = node.children.begin();
-       it != node.children.end(); ++it) {
-    // I'm screwed if there are circular dependencies between nodes...
-    assignMarkers(*(it->get()));
-  }
-}
-
-void Tree::removeMarkersFromZone(Node& node) {
-  for (auto b : node.buds) {
-    marker_set.removeFromSphere(b.position(), ro);
-    marker_set.addToSphere(b.position() + glm::normalize(b.orientation()), 2.0,
-                           10);
-  }
 }

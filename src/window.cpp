@@ -53,15 +53,17 @@ int Window::run(int iterations) {
   Viewer viewer("Trees");
   MarkerSet m;
   Tree tree(m);
-  // tree.run(iterations);
+  tree.run(iterations);
 
-  // getNodeVector(tree.root, -1);
-  for (int i = 0; i < 500; i++) {
-    glm::vec3 p = getPointInSphereCap(glm::vec3(1.0, 0.0, 1.0), (float) iterations);
-    nodes.push_back(vec3(p.x, p.y, p.z));
-  }
+  getNodeVector(tree.root, -1);
 
-  std::cout << "size in points " << nodes.size() << std::endl;
+  spdlog::info("qbase_max: {}", environment::qbase_max);
+  spdlog::info("num_markers: {}", environment::num_markers);
+  spdlog::info("r: {}", environment::r);
+  spdlog::info("theta: {}", environment::theta);
+  spdlog::info("ro: {}", environment::ro);
+  spdlog::info("alpha: {}", environment::alpha);
+  spdlog::info("lambda: {}", environment::lambda);
 
   auto vertices = new PointsDrawable("nodes");
   vertices->update_vertex_buffer(nodes);
@@ -70,38 +72,12 @@ int Window::run(int iterations) {
   vertices->set_point_size(5);
   viewer.add_drawable(vertices);
 
-  float xmin = -1.0, xmax = 1.0;
-  float ymin = -1.0, ymax = 1.0;
-  float zmin = -1.0, zmax = 1.0;
-  const std::vector<vec3> bbox_points = {
-          vec3(xmin, ymin, zmax), vec3(xmax, ymin, zmax),
-          vec3(xmin, ymax, zmax), vec3(xmax, ymax, zmax),
-          vec3(xmin, ymin, zmin), vec3(xmax, ymin, zmin),
-          vec3(xmin, ymax, zmin), vec3(xmax, ymax, zmin)
-  };
-  const std::vector<unsigned int> bbox_indices = {
-          0, 1, 2, 3, 4, 5, 6, 7,
-          0, 2, 4, 6, 1, 3, 5, 7,
-          0, 4, 2, 6, 1, 5, 3, 7
-  };
-  auto bbox_drawable = new LinesDrawable("bbox");
-  // Upload the vertex positions of the bounding box to the GPU.
-  bbox_drawable->update_vertex_buffer(bbox_points);
-  // Upload the vertex indices of the bounding box to the GPU.
-  bbox_drawable->update_element_buffer(bbox_indices);
-  // Draw the lines of the bounding box in blue.
-  bbox_drawable->set_uniform_coloring(vec4(0.0f, 0.0f, 1.0f, 1.0f));    // r, g, b, a
-  // Draw the lines with a width of 5 pixels.
-  bbox_drawable->set_line_width(5.0f);
-  // Add the drawable to the viewer
-  viewer.add_drawable(bbox_drawable);
-
-  // LinesDrawable* stems = new LinesDrawable("stems");
-  // stems->update_vertex_buffer(nodes);
-  // stems->update_element_buffer(indices);
-  // stems->set_uniform_coloring(vec4(0.0f, 0.0f, 1.0f, 1.0f));  // r, g, b, a
-  // stems->set_line_width(5.0);
-  // viewer.add_drawable(stems);
+  LinesDrawable* stems = new LinesDrawable("stems");
+  stems->update_vertex_buffer(nodes);
+  stems->update_element_buffer(indices);
+  stems->set_uniform_coloring(vec4(0.0f, 0.0f, 1.0f, 1.0f));  // r, g, b, a
+  stems->set_line_width(5.0);
+  viewer.add_drawable(stems);
 
 
   (viewer.camera())->setUpVector(vec3(0.0, 1.0, 0.0));
