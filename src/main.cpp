@@ -1,4 +1,3 @@
-#include "config.hpp"
 #include "spdlog/spdlog.h"
 #include "window.hpp"
 #include <iostream>
@@ -6,7 +5,7 @@
 #include <random>
 
 int main(int argc, char* argv[]) {
-  srand(time(0));
+  srand(static_cast<unsigned int>(time(0)));
   spdlog::set_pattern("[%c] %-8l %v");
 
   if (argc < 2) {

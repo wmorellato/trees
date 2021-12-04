@@ -20,14 +20,14 @@ class Bud {
  public:
   Bud(Node* _parent, environment::MarkerSet& m, bool _terminal);
 
-  int new_internodes{0};
+  Node* parent;  // to get the position
+  environment::MarkerSet& marker_set;
   bool terminal{false};
+  int new_internodes{0};
   long id{rand()};
   float Q{0};  // represents available space or light
   float internode_length{0.0};
   glm::vec3 optm_growth_direction{glm::vec3(0.0)};
-  Node* parent;  // to get the position
-  environment::MarkerSet& marker_set;
 
   glm::vec3 position();
   glm::vec3 orientation();

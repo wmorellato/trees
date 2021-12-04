@@ -11,7 +11,7 @@ namespace environment {
 class Marker {
  private:
  public:
-  Marker(glm::vec3 position);
+  explicit Marker(glm::vec3 _position);
   void reset();
 
   glm::vec3 position;

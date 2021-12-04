@@ -1,0 +1,8 @@
+qbase_max: 350
+num_markers: 20
+perception_radius: 4.0
+perception_angle: 90
+occupancy_radius: 2.0
+coeff_proportionality: 2.0
+coeff_resource_alloc: 0.46
+v_tropism: [0.0, 0.75, 0.0]

@@ -14,10 +14,10 @@ std::vector<vec3> nodes;
 void getNodeVector(std::unique_ptr<Node>& node, int pindex) {
   Node* n = node.get();
   glm::vec3 pos = n->position;
-  int this_index = nodes.size();
+  unsigned int this_index = static_cast<unsigned int>(nodes.size());
 
   if (pindex > -1) {
-    indices.push_back(pindex);
+    indices.push_back(static_cast<unsigned int>(pindex));
     indices.push_back(this_index);
   }
 
@@ -25,7 +25,7 @@ void getNodeVector(std::unique_ptr<Node>& node, int pindex) {
   spdlog::info("pindex: {}, order: {}, this: {}", pindex, n->order, this_index);
 
   for (auto &c : n->children) {
-    getNodeVector(c, this_index);
+    getNodeVector(c, static_cast<int>(this_index));
   }
 }
 

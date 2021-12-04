@@ -28,7 +28,7 @@ class Tree {
   void createSeedling();
 
  public:
-  Tree(environment::MarkerSet& marker_set);
+  explicit Tree(environment::MarkerSet& _marker_set);
 
   void run(int iterations);
   void runGrowthIteration(Node& node);

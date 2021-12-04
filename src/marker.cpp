@@ -5,7 +5,7 @@
 
 using namespace environment;
 
-Marker::Marker(glm::vec3 position) : position(position) {}
+Marker::Marker(glm::vec3 _position) : position(_position) {}
 
 void Marker::reset() {
   bud_id = 0;
@@ -46,7 +46,7 @@ void MarkerSet::assignBud(long bud_id, glm::vec3 bud_position, float r,
     float angle = glm::angle(m->position, bud_position);
 
     if (distance < r && distance < m->min_distance) {
-      if (angle < theta / 2.0) {
+      if (angle < theta / 2.0f) {
         m->bud_id = bud_id;
         m->min_distance = distance;
         dirty_markers.push_back(m);

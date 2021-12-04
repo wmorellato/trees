@@ -2,8 +2,8 @@
 
 using namespace tree;
 
-Node::Node(Node* parent, glm::vec3 position, int order)
-    : parent{parent}, position{position}, order{order} {
+Node::Node(Node* _parent, glm::vec3 _position, int _order)
+    : parent{_parent}, position{_position}, order{_order} {
   if (parent != nullptr) {
     this->direction = glm::normalize((this->position - this->parent->position));
   } else {

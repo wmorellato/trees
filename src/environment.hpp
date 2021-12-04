@@ -7,9 +7,9 @@
 namespace environment
 {
 
-inline YAML::Node config = YAML::LoadFile("/home/wes/repos/trees/build/config.yaml");
+inline YAML::Node config = YAML::LoadFile("<path_to_config>/config.yaml");
 
-inline const int qbase_max = config["qbase_max"].as<int>(150);
+inline const float qbase_max = config["qbase_max"].as<float>(150.0);
 inline const int num_markers = config["num_markers"].as<int>(10);
 inline const float r = config["perception_radius"].as<float>(4.0);
 inline const float theta = config["perception_angle"].as<float>(90.0);
@@ -23,7 +23,7 @@ inline glm::vec3 tropism() {
   float z = config["v_tropism"][2].as<float>(0.0);
 
   return glm::vec3(x, y, z);
-};
+}
 
 } // namespace environment
 
