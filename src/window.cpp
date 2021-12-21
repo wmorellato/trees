@@ -10,6 +10,7 @@ using namespace environment;
 
 std::vector<unsigned int> indices;
 std::vector<vec3> nodes;
+std::vector<vec3> shadows;
 
 void getNodeVector(std::unique_ptr<Node>& node, int pindex) {
   Node* n = node.get();
@@ -22,10 +23,32 @@ void getNodeVector(std::unique_ptr<Node>& node, int pindex) {
   }
 
   nodes.push_back(vec3(pos.x, pos.y, pos.z));
-  spdlog::info("pindex: {}, order: {}, this: {}", pindex, n->order, this_index);
+  spdlog::info("rendering vertex at ({},{},{})", pos.x, pos.y, pos.z);
 
   for (auto &c : n->children) {
     getNodeVector(c, static_cast<int>(this_index));
+  }
+}
+
+void getShadowValues(Tree& tree) {
+  spdlog::info("number of voxels: {}", tree.shadow_grid.grid.size());
+
+  for (std::pair<std::string, environment::ShadowVoxel> element : tree.shadow_grid.grid) {
+    if (element.second.value == 0.0f) {
+      continue;
+    }
+
+    vector<string> tokens;
+    stringstream check1(element.first);
+    string intermediate;
+    
+    while(getline(check1, intermediate, ',')) {
+      tokens.push_back(intermediate);
+    }
+
+    spdlog::info("rendering shadow at ({},{},{})", std::stof(tokens[0]), std::stof(tokens[1]), std::stof(tokens[2]));
+
+    shadows.push_back(vec3(std::stof(tokens[0]), std::stof(tokens[1]), std::stof(tokens[2])));
   }
 }
 
@@ -38,6 +61,7 @@ int Window::run(int iterations) {
   tree.run(iterations);
 
   getNodeVector(tree.root, -1);
+  getShadowValues(tree);
 
   spdlog::info("qbase_max: {}", environment::qbase_max);
   spdlog::info("num_markers: {}", environment::num_markers);
@@ -53,6 +77,13 @@ int Window::run(int iterations) {
   vertices->set_impostor_type(PointsDrawable::SPHERE);
   vertices->set_point_size(5);
   viewer.add_drawable(vertices);
+
+  auto shadow_points = new PointsDrawable("shadows");
+  shadow_points->update_vertex_buffer(shadows);
+  shadow_points->set_uniform_coloring(vec4(0.9f, 0.9f, 0.9f, 0.15f));  // r, g, b, a
+  shadow_points->set_impostor_type(PointsDrawable::SPHERE);
+  shadow_points->set_point_size(10);
+  // viewer.add_drawable(shadow_points);
 
   LinesDrawable* stems = new LinesDrawable("stems");
   stems->update_vertex_buffer(nodes);

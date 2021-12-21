@@ -5,7 +5,8 @@
 #include <random>
 
 int main(int argc, char* argv[]) {
-  srand(static_cast<unsigned int>(time(0)));
+  // srand(static_cast<unsigned int>(time(0)));
+  srand(static_cast<unsigned int>(13081990));
   spdlog::set_pattern("[%c] %-8l %v");
 
   if (argc < 2) {

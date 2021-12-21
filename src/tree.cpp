@@ -9,11 +9,11 @@
 using namespace tree;
 using namespace environment;
 
-// std::string pv3(glm::vec3 v) {
-//   std::ostringstream os;
-//   os << v.x << "," << v.y << "," << v.z;
-//   return os.str();
-// }
+std::string pv3(glm::vec3 v) {
+  std::ostringstream os;
+  os << v.x << "," << v.y << "," << v.z;
+  return os.str();
+}
 
 glm::vec3 getPointInSphereCap(glm::vec3 direction, float angle) {
   double rads = (std::rand() % static_cast<int>(angle)) * M_PI / 180.0;
@@ -22,7 +22,11 @@ glm::vec3 getPointInSphereCap(glm::vec3 direction, float angle) {
   return glm::quatLookAtLH(glm::normalize(direction), glm::vec3(0.0, 1.0, 0.0)) * V;
 }
 
-Tree::Tree(MarkerSet& _marker_set) : marker_set{_marker_set} { createSeedling(); }
+Tree::Tree(MarkerSet& _marker_set)
+  : marker_set{_marker_set},
+    shadow_grid{ShadowGrid(environment::voxel_size, glm::zero<glm::vec3>())} {
+  createSeedling();
+}
 
 void Tree::createSeedling() {
   root = std::make_unique<Node>(nullptr, glm::vec3(0.0), 0);
@@ -33,6 +37,15 @@ void Tree::createSeedling() {
 void Tree::run(int iterations) {
   for (int i = 0; i < iterations; i++) {
     runGrowthIteration(*root.get());
+  }
+
+  for (int x = -4; x < 5; x++) {
+    for (int y = -4; y < 5; y++) {
+      for (int z = -4; z < 5; z++) {
+        glm::vec3 shadow_position(x, y, z);
+        // spdlog::info("shadow at {0}: {1}", pv3(shadow_position), shadow_grid.getVoxelAtPosition(glm::vec3(x, y, z)).value);
+      }
+    } 
   }
 }
 
@@ -156,12 +169,16 @@ void Tree::growShoots(Node& node) {
 
       Node* new_node = new Node(n, n->position + direction*node.axillary_bud->internode_length, node.order + 1);
       new_node->axillary_bud = new Bud(n, marker_set, false);
+      // casting shadow
+      shadow_grid.propagateShadow(new_node->axillary_bud->position());
 
       n->addChild(new_node);
       n = new_node;
     }
 
     n->terminal_bud = new Bud(n, marker_set, true);
+    // casting shadow
+    shadow_grid.propagateShadow(n->terminal_bud->position());
   } else {
     for (auto &c : node.children) {
       if (c->order != node.order) {
@@ -179,12 +196,16 @@ void Tree::growShoots(Node& node) {
 
       Node* new_node = new Node(n, n->position + direction*node.terminal_bud->internode_length, node.order + 1);
       new_node->terminal_bud = new Bud(n, marker_set, false);
+      // casting shadow
+      shadow_grid.propagateShadow(new_node->terminal_bud->position());
 
       n->addChild(new_node);
       n = new_node;
     }
 
     n->terminal_bud = new Bud(n, marker_set, true);
+    // casting shadow
+    shadow_grid.propagateShadow(n->terminal_bud->position());
   } else {
     for (auto &c : node.children) {
       if (c->order == node.order) {

@@ -6,3 +6,5 @@ occupancy_radius: 2.0
 coeff_proportionality: 2.0
 coeff_resource_alloc: 0.46
 v_tropism: [0.0, 0.75, 0.0]
+voxel_size: 1.0
+qmax: 6

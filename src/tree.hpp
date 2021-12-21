@@ -43,6 +43,7 @@ class Tree {
 
   std::unique_ptr<Node> root;
   environment::MarkerSet& marker_set;
+  environment::ShadowGrid shadow_grid;
 };
 
 }  // namespace tree

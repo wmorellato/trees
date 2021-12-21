@@ -16,7 +16,7 @@ include_directories(${EASY3D_INCLUDE_DIRS})
 # add main file
 add_executable(trees
                main.cpp
-               environment.hpp
+               environment.hpp environment.cpp
                window.hpp window.cpp
                tree.hpp tree.cpp
                node.hpp node.cpp

@@ -1,3 +1,7 @@
+# Algoritmo
+
+Algoritmo tirado de *[Self-organizing tree models for image synthesis](http://algorithmicbotany.org/papers/selforg.sig2009.pdf)*. Usando [esse repositorio](https://github.com/bernardosulzbach/self-organizing-tree-models) como referência.
+
 # Requisitos
 
 - cmake > 3.15
