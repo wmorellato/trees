@@ -1,3 +1,7 @@
+# Note
+
+Kinda abandoned this one...
+
 # Algoritmo
 
 Algoritmo tirado de *[Self-organizing tree models for image synthesis](http://algorithmicbotany.org/papers/selforg.sig2009.pdf)*. Usando [esse repositorio](https://github.com/bernardosulzbach/self-organizing-tree-models) como referência.
@@ -23,3 +27,7 @@ cd build && cmake --build .
 ```
 
 O binário vai tá em `build/src/trees`. Roda passando o número de iterações como argumento, e.g. `trees 10`.
+
+Exemplo:
+
+![image](https://user-images.githubusercontent.com/58891430/181221223-c4e7010d-4d70-4eb4-a7e1-17a68b6a956c.png)
