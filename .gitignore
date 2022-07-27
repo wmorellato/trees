@@ -32,3 +32,9 @@
 
 # vscode
 .vscode/
+
+# easy3d folder
+libs/Easy3D
+
+# build
+build

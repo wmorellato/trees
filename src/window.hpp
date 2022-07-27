@@ -1,25 +1,12 @@
-#include "GLFundamentals.hpp"
-#include "GLDemonstration.hpp"
-#include <obj/obj.h>
-// #include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "environment.hpp"
 
 namespace app {
 
-class Window : public gl::demonstration {
+class Window {
  private:
-  obj* object;
-  GLuint program;
-
-  GLint ProjectionMatrixLocation;
-  GLint ModelViewMatrixLocation;
-  GLint NormalMatrixLocation;
-  GLint LightPositionLocation;
-  GLint AmbientLightLocation;
-
  public:
   Window();
-  void draw();
+  static int run(int iterations);
 };
 
 }  // namespace app

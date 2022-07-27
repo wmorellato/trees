@@ -1,54 +1,81 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
-# project name and version
-project(trees VERSION 1.0)
-
-# c++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(OpenGL_GL_PREFERENCE GLVND)
 
-# include dirs
-include_directories(include)
+# Set the project name to your project name, my project isn't very descriptive
+project(trees CXX)
+include(cmake/StandardProjectSettings.cmake)
+include(cmake/PreventInSourceBuilds.cmake)
 
-# sdl2
-find_package(SDL2 REQUIRED)
-include_directories(trees ${SDL2_INCLUDE_DIRS})
+# Link this 'library' to set the c++ standard / compile-time options requested
+add_library(project_options INTERFACE)
+target_compile_features(project_options INTERFACE cxx_std_17)
 
-# glfw
-find_package(glfw3 3.3 REQUIRED)
+if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+  option(ENABLE_BUILD_WITH_TIME_TRACE "Enable -ftime-trace to generate time tracing .json files on clang" OFF)
+  if(ENABLE_BUILD_WITH_TIME_TRACE)
+    target_compile_options(project_options INTERFACE -ftime-trace)
+  endif()
+endif()
 
-# glew
-find_package(GLEW REQUIRED)
-include_directories(${GLEW_INCLUDE_DIRS})
+# Link this 'library' to use the warnings specified in CompilerWarnings.cmake
+add_library(project_warnings INTERFACE)
 
-# opengl
-find_package(OpenGL REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIR})
+# enable cache system
+include(cmake/Cache.cmake)
 
-# add main file
-add_executable(trees
-               include/obj/obj.c
-               src/main.cpp
-               src/window.hpp src/window.cpp
-               src/GLDemonstration.hpp src/GLFundamentals.hpp
-)
+# Add linker configuration
+include(cmake/Linker.cmake)
+configure_linker(project_options)
 
-# replace config file
-configure_file(src/config.hpp.in config.hpp)
+# standard compiler warnings
+include(cmake/CompilerWarnings.cmake)
+set_project_warnings(project_warnings)
 
-target_include_directories(trees PUBLIC "${PROJECT_BINARY_DIR}")
+# sanitizer options if supported by compiler
+include(cmake/Sanitizers.cmake)
+enable_sanitizers(project_options)
 
-target_link_libraries(trees glfw)
-target_link_libraries(trees ${GLEW_LIBRARIES})
-target_link_libraries(trees ${OPENGL_LIBRARIES})
+# enable doxygen
+include(cmake/Doxygen.cmake)
+enable_doxygen()
 
-# sdl
-# set(SDL2_INCLUDE_DIR /usr/include/SDL2)
-# set(SDL2_LIBRARY /usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0)
-# include_directories(/usr/include/SDL2)
-# target_link_libraries(trees SDL2)
+# allow for static analysis options
+include(cmake/StaticAnalyzers.cmake)
 
-# find_package(SDL2 REQUIRED)
-# include_directories(${SDL2_INCLUDE_DIR})
-target_link_libraries(trees ${SDL2_LIBRARIES})
+option(BUILD_SHARED_LIBS "Enable compilation of shared libraries" OFF)
+option(ENABLE_TESTING "Enable Test Builds" ON)
+
+option(ENABLE_CONAN "Use Conan for dependency management" ON)
+if(ENABLE_CONAN)
+  include(cmake/Conan.cmake)
+  run_conan()
+endif()
+
+if(ENABLE_TESTING)
+  enable_testing()
+  message("Building Tests. Be sure to check out test/constexpr_tests for constexpr testing")
+  add_subdirectory(test)
+endif()
+
+# easy3d
+# include(FetchContent)
+
+# FetchContent_Declare(
+#   Easy3D
+#   PREFIX         ${CMAKE_SOURCE_DIR}/libs/easy3d
+#   GIT_REPOSITORY "https://github.com/LiangliangNan/Easy3D.git"
+#   GIT_TAG        b658e578980104fed3f2c59f34c7112c8496a269
+#   LOG_DOWNLOAD   True
+# )
+
+# FetchContent_MakeAvailable(Easy3D)
+
+add_subdirectory(src)
+
+option(ENABLE_UNITY "Enable Unity builds of projects" OFF)
+if(ENABLE_UNITY)
+  # Add for any project you want to apply unity builds for
+  set_target_properties(intro PROPERTIES UNITY_BUILD ON)
+endif()
